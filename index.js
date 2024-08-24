@@ -21,12 +21,6 @@ const  db = await sqlite.open({
 await db.migrate();
 
 
-
-
-
-
-
-
 app.get('/api/price_plans', async (req, res) => {
     const plans = await db.all('SELECT * FROM price_plan');
     res.json(plans);

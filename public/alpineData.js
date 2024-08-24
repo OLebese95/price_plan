@@ -1,130 +1,160 @@
 document.addEventListener("alpine:init", () => {
-    Alpine.data('pricePlan', () => ({
-      title: 'Price Plans',
-      usage: '',
+  Alpine.data('pricePlan', () => ({
+      title: 'Phone Bill',
+      plans: [], 
+      showPlans: false,
       totalBill: '0.00',
-      showPrices: false,
-      // prices: [],
-      prices: { call: 0, sms: 0 }, 
-      priceType: 'call', 
-      priceSet: '', 
-      status: '',
-      message: '',
       showResults: false,
-      showResults2: false,
-      sentence: '',
-      shortestWord: '',
-      longestWord: '',
-      sum: 0,
-      available: '',
-      usage2: '',
-      result: '',
+      pricePlans: [],
+      selectedPlan: '',
+      actions: '',
+      newPlanName: '',
+      newCallCost: '',
+      newSmsCost: '',
+      successMessage: '',
+      callCost: '', 
+      smsCost: '', 
+      successUpdateMessage: '',
+      selectedId: '', 
 
-      calculateBill() {
-        axios.post(`http://localhost:4011/api/phonebill/total`, {
-          total: this.usage
-        })
-        .then(response => {
-          this.totalBill = response.data.bill;
-          this.showResults2 = true;
-        })
-        .then(() => {
-          setTimeout(() => {
-            this.usage = '';
-            this.totalBill = '0.00';
-            this.showResults2 = false;
-          }, 5000)
-        })
-      
+
+      getPricePlans() {
+          axios.get('http://localhost:4011/api/price_plans/')
+              .then(response => {
+                  this.plans = response.data; 
+                  this.pricePlans = response.data;
+                  this.showPlans = true; 
+              })
       },
 
-      getPrices() {
-        axios.get(`http://localhost:4011/api/phonebill/prices`)
-        .then(response => {
-          this.prices = response.data;
-        })
-      },
+      calculateTotalBill() {
+        if (this.selectedPlan && this.actions) {
+            axios.post('http://localhost:4011/api/phonebill/', {
+                price_plan: this.selectedPlan,
+                actions: this.actions
+            })
+            .then(response => {
+                this.totalBill = response.data.total;
+                this.showResults = true;
 
-      setPrice() {
-        if (!this.priceSet || isNaN(this.priceSet)) {
-            alert("Please enter an amount");
-            return;
+              
+                setTimeout(() => {
+                    this.showResults = false;
+                    this.totalBill = '0.00'; 
+                    this.actions = '';
+                    this.selectedPlan = '';
+                }, 4000); 
+            })
+            .catch(error => {
+                console.error('Error calculating total bill:', error);
+            });
+        } else {
+            alert('Please select a price plan and enter actions.');
         }
-
-        axios.post(`http://localhost:4011/api/phonebill/price`, {
-            type: this.priceType,
-            price: this.priceSet
-        })
-        .then(response => {
-            this.status = response.data.status;
-            this.message = response.data.message;
-            alert(this.status);
-        })
-        .then(() => {
-          setTimeout(() => {
-            this.priceSet = '';
-            this.status = '';
-            this.message = '';
-          }, 5000)
-        })
     },
-    wordGames() {
-      if (!this.sentence.trim()) {
-          alert("Please enter a sentence!");
-          return;
-      }
-
-      axios.get(`http://localhost:4011/api/word_game`, {
-          params: {
-              sentence: this.sentence
-          }
-      })
-      .then(response => {
-          this.shortestWord = response.data.shortestWord;
-          this.longestWord = response.data.longestWord;
-          this.sum = response.data.sum;
-          this.showResults = true;
-      })
-      .then(() => {
-        setTimeout(() => {
-          this.sentence = '';
-          this.shortestWord = '';
-          this.longestWord = '';
-          this.sum = 0;
-          this.showResults = false;
-        }, 5000)
-      })
-  },
-  enoughAirtime() {
-    if (!this.available || isNaN(this.available)) {
-      alert("Please enter a valid amount for available airtime");
-      return;
-    }
-
-    axios.post(`http://localhost:4011/api/enough`, {
-      usage: this.usage2,
-      available: parseFloat(this.available)
-    })
-    .then(response => {
-      this.result = response.data.result;
 
     
-      const remainingAirtime = parseFloat(this.result.replace('R', ''));
+    createPricePlan() {
+      if (this.newPlanName && this.newCallCost && this.newSmsCost) {
+          axios.post('http://localhost:4011/api/price_plan/create', {
+              name: this.newPlanName,
+              call_cost: parseFloat(this.newCallCost),
+              sms_cost: parseFloat(this.newSmsCost)
+          })
+          .then(response => {
+              if (response.data.status === "Success") {
+                  this.successMessage = `Price plan ${this.newPlanName} is added into database.`;
+                  
+                 
+                  alert(this.successMessage);
+                  
 
-      if (remainingAirtime <= 0) {
-        alert("You no longer have money.");
+                  this.getPricePlans();
+  
+                
+                  this.newPlanName = '';
+                  this.newCallCost = '';
+                  this.newSmsCost = '';
+  
+
+                  setTimeout(() => {
+                      this.successMessage = '';
+                  }, 4000); 
+              }
+          })
+          .catch(error => {
+              console.error('Error creating price plan:', error);
+          });
+      } else {
+          alert('Please fill in all fields.');
       }
-    });
-
-    setTimeout(() => {
-      this.usage2 = '';
-      this.available = '';
-      this.result = '';
-    }, 5000);
   },
+  
+  fillPlanDetails() {
+    const selected = this.pricePlans.find(plan => plan.name === this.selectedPlan);
+    if (selected) {
+        this.callCost = selected.call_price;
+        this.smsCost = selected.sms_price;
+    }
+},
 
 
+updatePricePlan() {
+    if (this.selectedPlan && this.callCost && this.smsCost) {
+        axios.post('http://localhost:4011/api/price_plan/update', {
+            name: this.selectedPlan,
+            call_cost: parseFloat(this.callCost),
+            sms_cost: parseFloat(this.smsCost)
+        })
+        .then(response => {
+            if (response.data.status === "Success") {
+                this.successUpdateMessage = `Price plan ${this.selectedPlan} updated successfully.`;
+
+                   
+                     alert(this.successUpdateMessage);
+                
+              
+                setTimeout(() => {
+                    this.successUpdateMessage = '';
+                }, 4000);
+                
+            
+                this.getPricePlans();
+            }
+        })
+        .catch(error => {
+            console.error('Error updating price plan:', error);
+        });
+    } else {
+        alert('Please fill in all fields.');
+    }
+},
 
 
-    }));
-  });
+deletePlan() {
+  if (this.selectedId) {
+      axios.post('http://localhost:4011/api/price_plan/delete', {
+          id: this.selectedId
+      })
+      .then(response => {
+          if (response.data.status === "Success") {
+          
+              alert(`Price plan with ID ${this.selectedId} has been successfully deleted.`);
+
+          
+              this.getPricePlans();
+
+              this.selectedId = '';
+          }
+      })
+      .catch(error => {
+          console.error('Error deleting price plan:', error);
+      });
+  } else {
+      alert('Please select a price plan ID to delete.');
+  }
+},
+    init() {
+      this.getPricePlans(); 
+  }));
+});
