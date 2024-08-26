@@ -3,6 +3,7 @@ import cors from 'cors';
 import * as sqlite from 'sqlite';
 import sqlite3 from 'sqlite3';
 import { totalPhoneBill } from './totalphonebill.js';
+import { getPricePlanByName, createPricePlan, updatePricePlan, deletePricePlan } from './services/db.service.js';
 
 const app = express();
 const PORT = process.env.PORT || 4011;
@@ -30,37 +31,50 @@ app.get('/api/price_plans', async (req, res) => {
 app.post('/api/phonebill', async (req, res) => {
     const { price_plan, actions } = req.body;
 
-    const plan = await db.get('SELECT * FROM price_plan WHERE plan_name = ?', [price_plan]);
+    const plan = await getPricePlanByName(price_plan, db);
 
     if (!plan) {
         return res.status(404).json({ error: 'Price plan not found' });
     }
 
     const total = totalPhoneBill(actions, plan);
-    res.json({ total: `R${total}` }); 
+    res.json({ total: `R${total}` });
 });
 
 
 app.post('/api/price_plan/create', async (req, res) => {
     const { name, sms_cost, call_cost } = req.body;
+    const pricePlan = {
+        name,
+        sms_cost,
+        call_cost
+    };
 
-    await db.run('INSERT INTO price_plan (plan_name, sms_price, call_price) VALUES (?, ?, ?)', [name, sms_cost, call_cost]);
-    res.json({ status: 'Success', message: `Price plan ${name} is added into database.` });
+    try {
+     
+        await createPricePlan(pricePlan, db);
+        res.json({ status: 'Success', message: `Price plan ${name} is added into the database.` });
+    } catch (error) {
+
+        console.error('Error creating price plan:', error);
+        res.status(500).json({ status: 'Error', message: 'Failed to create price plan.' });
+    }
 });
+
 
 app.post('/api/price_plan/update', async (req, res) => {
     const { name, sms_cost, call_cost } = req.body;
 
-    await db.run('UPDATE price_plan SET sms_price = ?, call_price = ? WHERE plan_name = ?', [sms_cost, call_cost, name]);
+    await updatePricePlan({ name, sms_cost, call_cost }, db);
     res.json({ status: 'Success', message: `Price plan ${name} updated.` });
 });
 
 app.post('/api/price_plan/delete', async (req, res) => {
     const { id } = req.body;
-    const result = await db.run('DELETE FROM price_plan WHERE id = ?', [id]);
+    const result = await deletePricePlan(id, db);
 
     if (result.changes === 0) {
-        return res.status(404).json({ status: 'Error', message: `Price plan  ${id} is not available.` });
+        return res.status(404).json({ status: 'Error', message: `Price plan ${id} is not available.` });
     }
 
     res.json({ status: 'Success', message: `Price plan with ${id} has been successfully deleted.` });
