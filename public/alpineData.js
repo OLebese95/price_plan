@@ -18,7 +18,7 @@ document.addEventListener("alpine:init", () => {
         selectedId: '', 
   
         getPricePlans() {
-            axios.get('http://localhost:4011/api/price_plans/')
+            axios.get(`/api/price_plans/`)
                 .then(response => {
                     this.plans = response.data; 
                     this.pricePlans = response.data;
@@ -28,7 +28,7 @@ document.addEventListener("alpine:init", () => {
   
         calculateTotalBill() {
           if (this.selectedPlan && this.actions) {
-              axios.post('http://localhost:4011/api/phonebill/', {
+              axios.post(`/api/phonebill/`, {
                   price_plan: this.selectedPlan,
                   actions: this.actions
               })
@@ -53,7 +53,7 @@ document.addEventListener("alpine:init", () => {
   
       createPricePlan() {
         if (this.newPlanName && this.newCallCost && this.newSmsCost) {
-            axios.post('http://localhost:4011/api/price_plan/create', {
+            axios.post(`/api/price_plan/create`, {
                 name: this.newPlanName,
                 call_cost: parseFloat(this.newCallCost),
                 sms_cost: parseFloat(this.newSmsCost)
@@ -91,7 +91,7 @@ document.addEventListener("alpine:init", () => {
   
   updatePricePlan() {
       if (this.selectedPlan && this.callCost && this.smsCost) {
-          axios.post('http://localhost:4011/api/price_plan/update', {
+          axios.post(`/api/price_plan/update`, {
               name: this.selectedPlan,
               call_cost: parseFloat(this.callCost),
               sms_cost: parseFloat(this.smsCost)
@@ -118,7 +118,7 @@ document.addEventListener("alpine:init", () => {
   
   deletePlan() {
     if (this.selectedId) {
-        axios.post('http://localhost:4011/api/price_plan/delete', {
+        axios.post(`/api/price_plan/delete`, {
             id: this.selectedId
         })
         .then(response => {
