@@ -8,117 +8,162 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="alpineData.js"></script>
     <script src="//unpkg.com/alpinejs" defer></script>
-    <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-image: url('https://images.unsplash.com/photo-1557683316-973673baf926');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.9);
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes buttonPulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        button:hover {
+            animation: buttonPulse 0.6s infinite;
+        }
+
+        .table-row {
+            animation: slideIn 0.5s ease-in-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+    </style>
 </head>
 
-<body>
-    <div class="container" x-data="price_plan">
-        <h1 x-text="title"></h1>
-        <div class="container">
-          
-            <h2>Price Plans</h2>
-            <button x-show="!showPlans" x-on:click="getPricePlans">Show Price Plans</button>
-            <button x-show="showPlans" x-on:click="showPlans = false">Hide Price Plans</button>
+<body class="min-h-screen flex items-center justify-center bg-gray-200">
+    <div class="container max-w-lg mx-auto p-8 bg-white bg-opacity-90 rounded-lg shadow-lg" x-data="price_plan">
+        <h1 class="text-3xl font-bold text-center mb-8 text-gray-800" x-text="title"></h1>
+        
+        <div>
+            <h2 class="text-2xl font-semibold mb-4 text-gray-700">Price Plans</h2>
+            <div class="flex justify-between mb-4">
+                <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition" x-show="!showPlans" x-on:click="getPricePlans">Show Price Plans</button>
+                <button class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition" x-show="showPlans" x-on:click="showPlans = false">Hide Price Plans</button>
+            </div>
 
-           
-            <div x-show="showPlans">
-                <table>
+            <div x-show="showPlans" class="mt-4">
+                <table class="table-auto w-full bg-white shadow-md rounded-lg overflow-hidden">
                     <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Plan Name</th>
-                            <th>SMS Price</th>
-                            <th>Call Price</th>
+                        <tr class="bg-gray-700 text-white">
+                            <th class="p-3">ID</th>
+                            <th class="p-3">Plan Name</th>
+                            <th class="p-3">SMS Price</th>
+                            <th class="p-3">Call Price</th>
                         </tr>
                     </thead>
                     <tbody>
                         <template x-for="plan in plans" :key="plan.id">
-                            <tr>
-                                <td x-text="plan.id"></td>
-                                <td x-text="plan.plan_name"></td>
-                                <td x-text="plan.sms_price.toFixed(2)"></td>
-                                <td x-text="plan.call_price.toFixed(2)"></td>
+                            <tr class="border-b border-gray-200 table-row">
+                                <td class="p-3 text-gray-700" x-text="plan.id"></td>
+                                <td class="p-3 text-gray-700" x-text="plan.plan_name"></td>
+                                <td class="p-3 text-gray-700" x-text="plan.sms_price.toFixed(2)"></td>
+                                <td class="p-3 text-gray-700" x-text="plan.call_price.toFixed(2)"></td>
                             </tr>
                         </template>
                     </tbody>
                 </table>
             </div>
         </div>
-        <div class="container" style="margin-top: 40px;">
-            <h2>Calculate Total Bill</h2>
-            <h3>Select Price Plan</h3>
-            <select id="pricePlan" x-model="selectedPlan">
+
+        <div class="mt-10">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-700">Calculate Total Bill</h2>
+            <h3 class="mb-2 text-gray-600">Select Price Plan</h3>
+            <select class="w-full p-2 border border-gray-300 rounded mb-4" id="pricePlan" x-model="selectedPlan">
                 <option value="" disabled>Select a plan</option>
                 <template x-for="plan in pricePlans" :key="plan.id">
                     <option :value="plan.plan_name" x-text="plan.plan_name"></option>
                 </template>
             </select>
 
-            <h3 for="actions">Enter Actions</h3>
-            <input type="text" id="actions" x-model="actions" placeholder="e.g., call, sms, call">
+            <h3 class="mb-2 text-gray-600">Enter Actions</h3>
+            <input type="text" class="w-full p-2 border border-gray-300 rounded mb-4" id="actions" x-model="actions" placeholder="e.g., call, sms, call">
 
-            <button x-on:click="calculateTotalBill">Calculate Total Bill</button>
+            <button class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition" x-on:click="calculateTotalBill">Calculate Total Bill</button>
 
-            <div x-show="showResults" style="margin-top: 20px;">
-                <h3>Total: <span x-text="totalBill"></span></h3>
+            <div x-show="showResults" class="mt-4">
+                <h3 class="text-xl text-gray-800">Total: <span x-text="totalBill"></span></h3>
             </div>
         </div>
 
+        <div class="mt-10">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-700">Create New Price Plan</h2>
+            <h3 class="mb-2 text-gray-600">Plan Name</h3>
+            <input type="text" class="w-full p-2 border border-gray-300 rounded mb-4" id="newPlanName" x-model="newPlanName" placeholder="Enter plan name">
 
-       
-        <div class="container" style="margin-top: 40px;">
-            <h2>Create New Price Plan</h2>
-            <h3 for="newPlanName">Plan Name</h3>
-            <input type="text" id="newPlanName" x-model="newPlanName" placeholder="Enter plan name">
+            <h3 class="mb-2 text-gray-600">Call Cost</h3>
+            <input type="number" class="w-full p-2 border border-gray-300 rounded mb-4" id="newCallCost" x-model="newCallCost" step="0.01" placeholder="Enter call cost">
 
-            <h3 for="newCallCost">Call Cost</h3>
-            <input type="number" id="newCallCost" x-model="newCallCost" step="0.01" placeholder="Enter call cost">
+            <h3 class="mb-2 text-gray-600">SMS Cost</h3>
+            <input type="number" class="w-full p-2 border border-gray-300 rounded mb-4" id="newSmsCost" x-model="newSmsCost" step="0.01" placeholder="Enter SMS cost">
 
-            <h3 for="newSmsCost">SMS Cost</h3>
-            <input type="number" id="newSmsCost" x-model="newSmsCost" step="0.01" placeholder="Enter SMS cost">
-
-            <button x-on:click="createPricePlan">Add Price Plan</button>
+            <button class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition" x-on:click="createPricePlan">Add Price Plan</button>
         </div>
 
-        <div class="container" style="margin-top: 40px;">
-            <h2>Update Price Plan</h2>
-       
-            <h3 for="pricePlan">Select a Price Plan</h3>
-            <select id="pricePlan" x-model="selectedPlan" x-on:change="fillPlanDetails">
+        <div class="mt-10">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-700">Update Price Plan</h2>
+            <h3 class="mb-2 text-gray-600">Select a Price Plan</h3>
+            <select class="w-full p-2 border border-gray-300 rounded mb-4" id="pricePlan" x-model="selectedPlan" x-on:change="fillPlanDetails">
                 <option value="" disabled>Select a plan</option>
                 <template x-for="plan in pricePlans" :key="plan.id">
                     <option :value="plan.plan_name" x-text="plan.plan_name"></option>
                 </template>
             </select>
 
+            <h3 class="mb-2 text-gray-600">Call Cost</h3>
+            <input type="number" class="w-full p-2 border border-gray-300 rounded mb-4" id="callCost" x-model="callCost" placeholder="Enter new call cost">
 
-            <h3 for="callCost">Call Cost</h3>
-            <input type="number" id="callCost" x-model="callCost" placeholder="Enter new call cost">
+            <h3 class="mb-2 text-gray-600">SMS Cost</h3>
+            <input type="number" class="w-full p-2 border border-gray-300 rounded mb-4" id="smsCost" x-model="smsCost" placeholder="Enter new SMS cost">
 
-            <h3 for="smsCost">SMS Cost</h3>
-            <input type="number" id="smsCost" x-model="smsCost" placeholder="Enter new SMS cost">
-
-        
-            <button x-on:click="updatePricePlan">Update Price Plan</button>
+            <button class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition" x-on:click="updatePricePlan">Update Price Plan</button>
         </div>
 
+        <div class="mt-10">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-700">Delete Price Plan</h2>
+            <h3 class="mb-2 text-gray-600">Select Price Plan ID to Delete</h3>
+            <select class="w-full p-2 border border-gray-300 rounded mb-4" id="pricePlanId" x-model="selectedId">
+                <option value="" disabled>Select an ID</option>
+                <template x-for="plan in pricePlans" :key="plan.id">
+                    <option :value="plan.id" x-text="plan.id"></option>
+                </template>
+            </select>
 
-      
-            <div class="container" style="margin-top: 40px;">
-                <h2>Delete Price Plan</h2>
-                
-         
-                <h3 for="pricePlanId">Select Price Plan ID to Delete</h3>
-                <select id="pricePlanId" x-model="selectedId">
-                    <option value="" disabled>Select an ID</option>
-                    <template x-for="plan in pricePlans" :key="plan.id">
-                        <option :value="plan.id" x-text="plan.id"></option>
-                    </template>
-                </select>
-                
-          
-                <button x-on:click="deletePlan">Delete Price Plan</button>
-            </div>
+            <button class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition" x-on:click="deletePlan">Delete Price Plan</button>
+        </div>
 
     </div>
 </body>
